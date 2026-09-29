@@ -5,6 +5,7 @@ import (
 
 	"github.com/GabrielSolioz/jenvx/internal/java"
 	"github.com/GabrielSolioz/jenvx/internal/maven"
+	"github.com/GabrielSolioz/jenvx/internal/project"
 )
 
 func Doctor() {
@@ -59,12 +60,19 @@ func Doctor() {
 		fmt.Println(" ", mavenInfo.JavaVersion)
 	}
 
+	projectInfo := project.DetectPom()
 	fmt.Println()
 	fmt.Println("Project")
 
-	if mavenInfo.ProjectDetected {
-		fmt.Println("✓ Proyecto Maven detectado")
-	} else {
+	if !projectInfo.IsMaven {
 		fmt.Println("⚠ No se encontró pom.xml")
+	} else {
+		fmt.Println("✓ Proyecto Maven detectado")
+
+		if projectInfo.JavaVersion != "" {
+			fmt.Println("  Java requerido:", projectInfo.JavaVersion)
+		} else {
+			fmt.Println("⚠ No se pudo determinar la versión de Java requerida")
+		}
 	}
 }
