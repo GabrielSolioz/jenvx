@@ -20,6 +20,9 @@ func main() {
 	case "doctor":
 		cmd.Doctor()
 
+	case "init":
+		cmd.Init()
+
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 	}
