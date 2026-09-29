@@ -1,0 +1,4 @@
+jenvx.exe
+*.exe
+dist/
+build/
