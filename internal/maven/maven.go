@@ -10,6 +10,7 @@ type Info struct {
 	Installed       bool
 	Version         string
 	JavaVersion     string
+	JavaMajor       string
 	ProjectDetected bool
 }
 
@@ -17,6 +18,7 @@ func Detect() Info {
 	info := Info{}
 
 	info.Version, info.JavaVersion = getMavenInfo()
+	info.JavaMajor = extractJavaMajor(info.JavaVersion)
 
 	if info.Version != "" {
 		info.Installed = true
@@ -55,4 +57,25 @@ func getMavenInfo() (string, string) {
 	}
 
 	return version, javaVersion
+}
+
+func extractJavaMajor(line string) string {
+	line = strings.TrimPrefix(line, "Java version:")
+	line = strings.TrimSpace(line)
+
+	parts := strings.Split(line, ",")
+
+	if len(parts) == 0 {
+		return ""
+	}
+
+	version := strings.TrimSpace(parts[0])
+
+	versionParts := strings.Split(version, ".")
+
+	if len(versionParts) == 0 {
+		return ""
+	}
+
+	return versionParts[0]
 }

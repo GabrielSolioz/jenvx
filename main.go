@@ -9,7 +9,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Uso: jenvx <comando>")
+		fmt.Println("Usage: jenvx <command>")
 		return
 	}
 
@@ -21,6 +21,6 @@ func main() {
 		cmd.Doctor()
 
 	default:
-		fmt.Printf("Comando desconocido: %s\n", os.Args[1])
+		fmt.Printf("Unknown command: %s\n", os.Args[1])
 	}
 }

@@ -9,8 +9,9 @@ import (
 )
 
 func Doctor() {
-	fmt.Println("jenvx doctor")
-	fmt.Println("-------------")
+	fmt.Println("----------------")
+	fmt.Println("- jenvx doctor -")
+	fmt.Println("----------------")
 
 	info := java.Detect()
 
@@ -18,9 +19,9 @@ func Doctor() {
 	fmt.Println("Java")
 
 	if info.PathVersion == "" {
-		fmt.Println("✗ Java no encontrado en PATH")
+		fmt.Println("✗ Java was not found in PATH")
 	} else {
-		fmt.Println("✓ java encontrado")
+		fmt.Println("✓ java detected")
 		fmt.Println(" ", info.PathVersion)
 	}
 
@@ -28,7 +29,7 @@ func Doctor() {
 	fmt.Println("JAVA_HOME")
 
 	if info.JavaHome == "" {
-		fmt.Println("⚠ JAVA_HOME no está definido")
+		fmt.Println("⚠ JAVA_HOME is not defined")
 	} else {
 		fmt.Println("✓", info.JavaHome)
 
@@ -42,8 +43,8 @@ func Doctor() {
 		info.PathVersion != info.JavaHomeVersion {
 
 		fmt.Println()
-		fmt.Println("⚠ Posible inconsistencia detectada")
-		fmt.Println("  Java en PATH:", info.PathVersion)
+		fmt.Println("⚠ Possible Java environment mismatch detected")
+		fmt.Println("  Java in PATH:", info.PathVersion)
 		fmt.Println("  JAVA_HOME:", info.JavaHomeVersion)
 	}
 
@@ -53,9 +54,9 @@ func Doctor() {
 	fmt.Println("Maven")
 
 	if !mavenInfo.Installed {
-		fmt.Println("✗ Maven no está instalado o no está en PATH")
+		fmt.Println("✗ Maven was not found in PATH")
 	} else {
-		fmt.Println("✓ Maven detectado")
+		fmt.Println("✓ Maven detected")
 		fmt.Println(" ", mavenInfo.Version)
 		fmt.Println(" ", mavenInfo.JavaVersion)
 	}
@@ -65,14 +66,52 @@ func Doctor() {
 	fmt.Println("Project")
 
 	if !projectInfo.IsMaven {
-		fmt.Println("⚠ No se encontró pom.xml")
+		fmt.Println("⚠  pom.xml was not found")
 	} else {
-		fmt.Println("✓ Proyecto Maven detectado")
+		fmt.Println("✓ Maven Proyect detected")
 
 		if projectInfo.JavaVersion != "" {
-			fmt.Println("  Java requerido:", projectInfo.JavaVersion)
+			fmt.Println("Required Java version:", projectInfo.JavaVersion)
 		} else {
-			fmt.Println("⚠ No se pudo determinar la versión de Java requerida")
+			fmt.Println("⚠ Could not determine the required Java version")
 		}
+	}
+	fmt.Println()
+	fmt.Println("Environment compatibility")
+
+	if projectInfo.JavaVersion == "" {
+		fmt.Println("⚠ Compatibility cannot be checked without a required Java version")
+		return
+	}
+
+	required := projectInfo.JavaVersion
+
+	fmt.Println("  Project requires Java", required)
+
+	if info.JavaHomeMajor == required {
+		fmt.Println("✓ JAVA_HOME matches project: Java", info.JavaHomeMajor)
+	} else if info.JavaHomeMajor != "" {
+		fmt.Printf("✗ JAVA_HOME uses Java %s, project requires Java %s\n",
+			info.JavaHomeMajor,
+			required,
+		)
+	}
+
+	if mavenInfo.JavaMajor == required {
+		fmt.Println("✓ Maven is using Java", mavenInfo.JavaMajor)
+	} else if mavenInfo.JavaMajor != "" {
+		fmt.Printf("✗ Maven is using Java %s, project requires Java %s\n",
+			mavenInfo.JavaMajor,
+			required,
+		)
+	}
+
+	if info.PathMajor == required {
+		fmt.Println("✓ PATH matches project: Java", info.PathMajor)
+	} else if info.PathMajor != "" {
+		fmt.Printf("⚠ PATH is using Java %s, project requires Java %s\n",
+			info.PathMajor,
+			required,
+		)
 	}
 }
