@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/GabrielSolioz/jenvx/internal/config"
 	"github.com/GabrielSolioz/jenvx/internal/java"
 	"github.com/GabrielSolioz/jenvx/internal/maven"
 	"github.com/GabrielSolioz/jenvx/internal/project"
-	"github.com/GabrielSolioz/jenvx/internal/config"
 )
 
 func Doctor() {
@@ -22,7 +22,7 @@ func Doctor() {
 	if info.PathVersion == "" {
 		fmt.Println("✗ Java was not found in PATH")
 	} else {
-		fmt.Println("✓ java detected")
+		fmt.Println("✓ Java detected")
 		fmt.Println(" ", info.PathVersion)
 	}
 
@@ -63,76 +63,34 @@ func Doctor() {
 	}
 
 	projectInfo := project.DetectPom()
-
 	jenvxConfig, configErr := config.Load()
 
 	fmt.Println()
 	fmt.Println("Project")
 
 	if !projectInfo.IsMaven {
-		fmt.Println("⚠  pom.xml was not found")
+		fmt.Println("⚠ pom.xml was not found")
 	} else {
-		fmt.Println("✓ Maven Proyect detected")
+		fmt.Println("✓ Maven project detected")
 
 		if projectInfo.JavaVersion != "" {
-			fmt.Println("Required Java version:", projectInfo.JavaVersion)
+			fmt.Println("  Required Java version:", projectInfo.JavaVersion)
 		} else {
 			fmt.Println("⚠ Could not determine the required Java version")
 		}
 	}
-	fmt.Println()
-	fmt.Println("Environment compatibility")
-
-	if projectInfo.JavaVersion == "" {
-		fmt.Println("⚠ Compatibility cannot be checked without a required Java version")
-		return
-	}
-
-	required := ""
-
-	if configErr == nil && jenvxConfig.Java.Version != "" {
-		required = jenvxConfig.Java.Version
-	} else if projectInfo.JavaVersion != "" {
-		required = projectInfo.JavaVersion
-	}
-	
-	if required == "" {
-		fmt.Println("⚠ Could not determine the required Java version")
-		return
-	}
-
-	fmt.Println("  Project requires Java", required)
-
-	if info.JavaHomeMajor == required {
-		fmt.Println("✓ JAVA_HOME matches project: Java", info.JavaHomeMajor)
-	} else if info.JavaHomeMajor != "" {
-		fmt.Printf("✗ JAVA_HOME uses Java %s, project requires Java %s\n",
-			info.JavaHomeMajor,
-			required,
-		)
-	}
-
-	if mavenInfo.JavaMajor == required {
-		fmt.Println("✓ Maven is using Java", mavenInfo.JavaMajor)
-	} else if mavenInfo.JavaMajor != "" {
-		fmt.Printf("✗ Maven is using Java %s, project requires Java %s\n",
-			mavenInfo.JavaMajor,
-			required,
-		)
-	}
-
-	if info.PathMajor == required {
-		fmt.Println("✓ PATH matches project: Java", info.PathMajor)
-	} else if info.PathMajor != "" {
-		fmt.Printf("⚠ PATH is using Java %s, project requires Java %s\n",
-			info.PathMajor,
-			required,
-		)
-	}
 
 	fmt.Println()
 	fmt.Println("jenvx configuration")
-	
+
+	if configErr != nil {
+		fmt.Println("⚠ jenvx.toml was not found or could not be loaded")
+	} else {
+		fmt.Println("✓ jenvx.toml loaded")
+		fmt.Println("  Java:", jenvxConfig.Java.Version)
+		fmt.Println("  Build tool:", jenvxConfig.Build.Tool)
+	}
+
 	if configErr == nil &&
 		jenvxConfig.Java.Version != "" &&
 		projectInfo.JavaVersion != "" &&
@@ -147,11 +105,51 @@ func Doctor() {
 		)
 	}
 
-	if configErr != nil {
-		fmt.Println("⚠ jenvx.toml was not found or could not be loaded")
-	} else {
-		fmt.Println("✓ jenvx.toml loaded")
-		fmt.Println("  Java:", jenvxConfig.Java.Version)
-		fmt.Println("  Build tool:", jenvxConfig.Build.Tool)
+	fmt.Println()
+	fmt.Println("Environment compatibility")
+
+	required := ""
+
+	if configErr == nil && jenvxConfig.Java.Version != "" {
+		required = jenvxConfig.Java.Version
+	} else if projectInfo.JavaVersion != "" {
+		required = projectInfo.JavaVersion
+	}
+
+	if required == "" {
+		fmt.Println("⚠ Could not determine the required Java version")
+		return
+	}
+
+	fmt.Println("  Project requires Java", required)
+
+	if info.JavaHomeMajor == required {
+		fmt.Println("✓ JAVA_HOME matches project: Java", info.JavaHomeMajor)
+	} else if info.JavaHomeMajor != "" {
+		fmt.Printf(
+			"✗ JAVA_HOME uses Java %s, project requires Java %s\n",
+			info.JavaHomeMajor,
+			required,
+		)
+	}
+
+	if mavenInfo.JavaMajor == required {
+		fmt.Println("✓ Maven is using Java", mavenInfo.JavaMajor)
+	} else if mavenInfo.JavaMajor != "" {
+		fmt.Printf(
+			"✗ Maven is using Java %s, project requires Java %s\n",
+			mavenInfo.JavaMajor,
+			required,
+		)
+	}
+
+	if info.PathMajor == required {
+		fmt.Println("✓ PATH matches project: Java", info.PathMajor)
+	} else if info.PathMajor != "" {
+		fmt.Printf(
+			"⚠ PATH is using Java %s, project requires Java %s\n",
+			info.PathMajor,
+			required,
+		)
 	}
 }
