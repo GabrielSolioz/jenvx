@@ -6,6 +6,7 @@ import (
 	"github.com/GabrielSolioz/jenvx/internal/java"
 	"github.com/GabrielSolioz/jenvx/internal/maven"
 	"github.com/GabrielSolioz/jenvx/internal/project"
+	"github.com/GabrielSolioz/jenvx/internal/config"
 )
 
 func Doctor() {
@@ -62,6 +63,9 @@ func Doctor() {
 	}
 
 	projectInfo := project.DetectPom()
+
+	jenvxConfig, configErr := config.Load()
+
 	fmt.Println()
 	fmt.Println("Project")
 
@@ -84,7 +88,18 @@ func Doctor() {
 		return
 	}
 
-	required := projectInfo.JavaVersion
+	required := ""
+
+	if configErr == nil && jenvxConfig.Java.Version != "" {
+		required = jenvxConfig.Java.Version
+	} else if projectInfo.JavaVersion != "" {
+		required = projectInfo.JavaVersion
+	}
+	
+	if required == "" {
+		fmt.Println("⚠ Could not determine the required Java version")
+		return
+	}
 
 	fmt.Println("  Project requires Java", required)
 
@@ -113,5 +128,30 @@ func Doctor() {
 			info.PathMajor,
 			required,
 		)
+	}
+
+	fmt.Println()
+	fmt.Println("jenvx configuration")
+	
+	if configErr == nil &&
+		jenvxConfig.Java.Version != "" &&
+		projectInfo.JavaVersion != "" &&
+		jenvxConfig.Java.Version != projectInfo.JavaVersion {
+
+		fmt.Println()
+		fmt.Println("⚠ Configuration mismatch")
+		fmt.Printf(
+			"  jenvx.toml requires Java %s, but pom.xml requires Java %s\n",
+			jenvxConfig.Java.Version,
+			projectInfo.JavaVersion,
+		)
+	}
+
+	if configErr != nil {
+		fmt.Println("⚠ jenvx.toml was not found or could not be loaded")
+	} else {
+		fmt.Println("✓ jenvx.toml loaded")
+		fmt.Println("  Java:", jenvxConfig.Java.Version)
+		fmt.Println("  Build tool:", jenvxConfig.Build.Tool)
 	}
 }
