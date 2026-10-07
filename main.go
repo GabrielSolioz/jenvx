@@ -31,6 +31,9 @@ func main() {
 
 		cmd.Run(os.Args[2], os.Args[3:])
 
+	case "jdks":
+		cmd.JDKs()
+
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 	}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/GabrielSolioz/jenvx/internal/config"
 	"github.com/GabrielSolioz/jenvx/internal/java"
+	"github.com/GabrielSolioz/jenvx/internal/jdk"
 )
 
 func Run(command string, args []string) error {
@@ -41,11 +42,16 @@ func Run(command string, args []string) error {
 		)
 	}
 
-	javaBin := filepath.Join(javaInfo.JavaHome, "bin")
+	javaHome, err := resolveJavaHome(requiredJava, javaInfo)
+	if err != nil {
+		return err
+	}
+
+	javaBin := filepath.Join(javaHome, "bin")
 
 	env := os.Environ()
 
-	env = setEnv(env, "JAVA_HOME", javaInfo.JavaHome)
+	env = setEnv(env, "JAVA_HOME", javaHome)
 	env = prependPath(env, javaBin)
 
 	resolvedCommand := resolveCommand(command, javaBin)
@@ -58,7 +64,7 @@ func Run(command string, args []string) error {
 	execCmd.Stderr = os.Stderr
 
 	fmt.Printf("jenvx: using Java %s\n", requiredJava)
-	fmt.Printf("jenvx: JAVA_HOME=%s\n", javaInfo.JavaHome)
+	fmt.Printf("jenvx: JAVA_HOME=%s\n", javaHome)
 	fmt.Println()
 
 	return execCmd.Run()
@@ -118,4 +124,22 @@ func resolveCommand(command string, javaBin string) string {
 	}
 
 	return command
+}
+
+func resolveJavaHome(requiredVersion string, javaInfo java.Info) (string, error) {
+	managedJDK, err := jdk.Path(requiredVersion)
+	if err == nil && jdk.Exists(requiredVersion) {
+		return managedJDK, nil
+	}
+
+	if javaInfo.JavaHome != "" &&
+		javaInfo.JavaHomeMajor == requiredVersion {
+
+		return javaInfo.JavaHome, nil
+	}
+
+	return "", fmt.Errorf(
+		"Java %s is not available in jenvx and JAVA_HOME does not provide it",
+		requiredVersion,
+	)
 }
