@@ -23,6 +23,14 @@ func main() {
 	case "init":
 		cmd.Init()
 
+	case "run":
+		if len(os.Args) < 3 {
+			fmt.Println("Usage: jenvx run <command> [arguments...]")
+			return
+		}
+
+		cmd.Run(os.Args[2], os.Args[3:])
+
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 	}
